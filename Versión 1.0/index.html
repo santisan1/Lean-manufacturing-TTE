@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard 5S - Sector Bobinado</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .tab-active {
+            border-bottom-width: 2px;
+            border-color: #fe4a00;
+            color: #fe4a00;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <header class="text-white shadow-lg" style="background-color: #2A3A5B;">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-2xl md:text-3xl font-bold">Dashboard 5S - Sector Bobinado</h1>
+            <p class="text-gray-300 text-sm md:text-base mt-1">Gestión del Cambio y Sostenibilidad (Shitsuke)</p>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-8 overflow-x-auto">
+                <button onclick="showTab('dashboard')" id="tab-dashboard"
+                    class="py-4 px-2 font-semibold transition-colors tab-active whitespace-nowrap">Dashboard</button>
+                <button onclick="showTab('desvios-detalle')" id="tab-desvios-detalle"
+                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Desvíos
+                    Detalle</button>
+                <button onclick="showTab('kaizen-detalle')" id="tab-kaizen-detalle"
+                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Ideas
+                    Kaizen</button>
+                <button onclick="showTab('analytics')" id="tab-analytics"
+                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Análisis
+                    por OLA</button>
+                <button onclick="showTab('data-entry')" id="tab-data-entry"
+                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Entrada
+                    de Datos</button>
+            </div>
+            <div id="auth-status" class="text-xs text-gray-500 pt-1">Iniciando autenticación.</div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- DASHBOARD -->
+        <div id="view-dashboard" class="space-y-8">
+            <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg shadow-lg p-6 text-center">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">🏆 Célula Estandarizada de la Semana</h2>
+                <p id="best-cell" class="text-3xl md:text-4xl font-bold text-gray-900">Cargando.</p>
+            </div>
+
+            <section>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Puntaje de Mantenimiento 5S (Shitsuke)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="shitsuke-cards"></div>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Comparativa BASELINE vs. Último Puntaje</h2>
+                <div class="h-64 md:h-80 chart-container"><canvas id="baseline-chart"></canvas></div>
+            </section>
+
+            <section>
+
+
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Eficiencia y Acción</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">TMRD (Tiempo Medio de Respuesta)</h3>
+                        <p id="tmrd-value" class="text-4xl font-bold text-orange-600">-- h</p>
+                        <p class="text-sm text-gray-500 mt-2">Promedio de cierre de desvíos</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Ideas Kaizen Activas</h3>
+                        <p id="kaizen-count" class="text-4xl font-bold text-green-600">--</p>
+                        <p class="text-sm text-gray-500 mt-2">Ideas de mejora abiertas</p>
+
+                        <button onclick="showTab('kaizen-detalle')"
+                            class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg">Ver</button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Desvíos (Último Mes)</h3>
+                        <div class="h-40 chart-container"><canvas id="desvios-chart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- DESVÍOS DETALLE -->
+        <div id="view-desvios-detalle" class="hidden space-y-8">
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Filtros de Desvíos y Kaizen</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
+                        <select id="filter-ola"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                            onchange="loadDesviosDetalle()">
+                            <option value="">Todas las OLAs</option>
+                            <option value="OLA 1">OLA 1</option>
+                            <option value="OLA 2">OLA 2</option>
+                            <option value="OLA 3">OLA 3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo</label>
+                        <select id="filter-tipo"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                            onchange="loadDesviosDetalle()">
+                            <option value="">Todos</option>
+                            <option value="DESVIO">Desvíos</option>
+                            <option value="KAIZEN">Kaizen</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                        <select id="filter-estado"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                            onchange="loadDesviosDetalle()">
+                            <option value="">Todos</option>
+                            <option value="ABIERTO">Abiertos</option>
+                            <option value="CERRADO">Cerrados</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="loadDesviosDetalle()"
+                            class="w-full bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold">Refrescar</button>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Total Registros</h3>
+                    <p id="summary-total" class="text-3xl font-bold text-orange-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Abiertos</h3>
+                    <p id="summary-abiertos" class="text-3xl font-bold text-red-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Cerrados</h3>
+                    <p id="summary-cerrados" class="text-3xl font-bold text-green-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Ideas Kaizen</h3>
+                    <p id="summary-kaizen" class="text-3xl font-bold text-purple-600">0</p>
+                </div>
+            </div>
+
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Listado de Registros</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha Creación</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">OLA</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tipo</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Descripción</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tiempo Abierto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="desvios-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- KAIZEN DETALLE (similar estructura) -->
+        <div id="view-kaizen-detalle" class="hidden space-y-8">
+            <!-- filtros y tabla -->
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Filtros - Ideas Kaizen</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
+                        <select id="filter-kaizen-ola"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                            onchange="loadKaizenDetalle()">
+                            <option value="">Todas las OLAs</option>
+                            <option value="OLA 1">OLA 1</option>
+                            <option value="OLA 2">OLA 2</option>
+                            <option value="OLA 3">OLA 3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                        <select id="filter-kaizen-estado"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                            onchange="loadKaizenDetalle()">
+                            <option value="">Todos</option>
+                            <option value="ABIERTO">Abiertas</option>
+                            <option value="CERRADO">Cerradas</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="loadKaizenDetalle()"
+                            class="w-full font-semibold px-6 py-2 rounded-lg text-white"
+                            style="background-color:#fe4a00;">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Total Ideas</h3>
+                    <p id="kaizen-summary-total" class="text-3xl font-bold text-purple-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Abiertas</h3>
+                    <p id="kaizen-summary-abiertos" class="text-3xl font-bold text-blue-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Aprobadas</h3>
+                    <p id="kaizen-summary-aprobadas" class="text-3xl font-bold text-green-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Rechazadas</h3>
+                    <p id="kaizen-summary-rechazadas" class="text-3xl font-bold text-red-600">0</p>
+                </div>
+            </div>
+
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Listado de Ideas Kaizen</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha Creación</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">OLA</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Descripción</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Resolución</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kaizen-table-body" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ANALYTICS POR OLA -->
+        <div id="view-analytics" class="hidden space-y-8">
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Análisis Específico por OLA</h2>
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="loadOLAAnalytics('OLA 1', this)"
+                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
+                        data-ola="OLA 1">OLA 1 (Célula A)</button>
+                    <button onclick="loadOLAAnalytics('OLA 2', this)"
+                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
+                        data-ola="OLA 2">OLA 2 (Célula B)</button>
+                    <button onclick="loadOLAAnalytics('OLA 3', this)"
+                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
+                        data-ola="OLA 3">OLA 3 (Célula C)</button>
+                </div>
+            </section>
+
+            <div id="ola-analytics-content">
+                <div class="text-center py-12 text-gray-500">
+                    <p class="text-lg">Selecciona una OLA para ver el análisis detallado de la tendencia de desvíos.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATA ENTRY -->
+        <div id="view-data-entry" class="hidden space-y-8">
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Registro de Auditoría</h2>
+                <form id="audit-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
+                            <select name="ola" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                <option value="">Seleccionar OLA</option>
+                                <option value="OLA 1">OLA 1</option>
+                                <option value="OLA 2">OLA 2</option>
+                                <option value="OLA 3">OLA 3</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Célula Auditora</label>
+                            <select name="auditor_celula" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                <option value="">Seleccionar Célula</option>
+                                <option value="Célula A">Célula A</option>
+                                <option value="Célula B">Célula B</option>
+                                <option value="Célula C">Célula C</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Auditoría</label>
+                            <select name="tipo" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                <option value="">Seleccionar Tipo</option>
+                                <option value="BASELINE">BASELINE</option>
+                                <option value="CERTIFICACION">CERTIFICACIÓN</option>
+                                <option value="SHITSUKE">SHITSUKE (Mantenimiento)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Puntaje (0-100)</label>
+                            <input type="number" name="puntaje" min="0" max="100" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                        </div>
+                    </div>
+                    <button type="submit"
+                        class="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-3 rounded-lg">Guardar
+                        Auditoría</button>
+                </form>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Registro de Desvío / Kaizen</h2>
+                <form id="desvio-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo</label>
+                            <select name="tipo" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                <option value="">Seleccionar Tipo</option>
+                                <option value="DESVIO">DESVÍO</option>
+                                <option value="KAIZEN">KAIZEN (Idea de Mejora)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
+                            <select name="ola" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                <option value="">Seleccionar OLA</option>
+                                <option value="OLA 1">OLA 1</option>
+                                <option value="OLA 2">OLA 2</option>
+                                <option value="OLA 3">OLA 3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                        <textarea name="descripcion" rows="4" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"></textarea>
+                    </div>
+                    <button type="submit"
+                        class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded-lg">Guardar
+                        Registro</button>
+                </form>
+            </section>
+
+            <section class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Cerrar Desvíos Abiertos</h2>
+                <div id="open-desvios" class="space-y-3"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- MODALS: desvio + kaizen -->
+    <div id="desvio-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0" onclick="closeDesvioModal()"></div>
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <div class="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div
+                    class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
+                    <h2 class="text-2xl font-bold text-gray-800">Detalle de Desvío</h2>
+                    <button onclick="closeDesvioModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="px-6 py-6 space-y-6">
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">DESVÍO</span>
+                            <span id="desvio-modal-estado-badge"
+                                class="px-3 py-1 rounded-full text-sm font-semibold"></span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-600">OLA</p>
+                            <p id="desvio-modal-ola" class="text-lg font-bold text-gray-800"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-600">Descripción</p>
+                            <p id="desvio-modal-descripcion" class="text-gray-800"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600">Fecha Creación</p>
+                                <p id="desvio-modal-fecha-creacion" class="text-gray-800"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600">Fecha Cierre</p>
+                                <p id="desvio-modal-fecha-cierre" class="text-gray-800">-</p>
+                            </div>
+                        </div>
+                        <div id="desvio-modal-resolucion-info" class="hidden border-t border-gray-300 pt-3 mt-3">
+                            <div class="mb-3">
+                                <p class="text-sm font-semibold text-gray-600">Notas de Cierre</p>
+                                <p id="desvio-modal-resolucion-notas" class="text-gray-800"></p>
+                            </div>
+                            <div id="desvio-modal-evidencia-container" class="hidden">
+                                <p class="text-sm font-semibold text-gray-600 mb-2">Evidencia</p>
+                                <div id="desvio-modal-evidencia-content"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="desvio-resolution-form-container" class="hidden">
+                        <div class="border-t border-gray-200 pt-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Cerrar Desvío</h3>
+                            <form id="desvio-resolution-form" class="space-y-4">
+                                <input type="hidden" id="desvio-resolution-item-id" />
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Notas /
+                                        Comentarios</label>
+                                    <textarea id="desvio-resolution-notes" rows="4" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        placeholder="Describe las acciones tomadas para corregir el desvío..."></textarea>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button type="submit" class="flex-1 font-semibold px-6 py-3 rounded-lg text-white"
+                                        style="background-color:#fe4a00;">Cerrar Desvío</button>
+                                    <button type="button" onclick="closeDesvioModal()"
+                                        class="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="kaizen-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0" onclick="closeKaizenModal()"></div>
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <div class="relative bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                <div
+                    class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
+                    <h2 class="text-2xl font-bold text-gray-800">Detalle de Idea Kaizen</h2>
+                    <button onclick="closeKaizenModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="px-6 py-6 space-y-6">
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">KAIZEN</span>
+                            <span id="kaizen-modal-estado-badge"
+                                class="px-3 py-1 rounded-full text-sm font-semibold"></span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-600">OLA</p>
+                            <p id="kaizen-modal-ola" class="text-lg font-bold text-gray-800"></p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-600">Descripción de la Idea</p>
+                            <p id="kaizen-modal-descripcion" class="text-gray-800"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600">Fecha Creación</p>
+                                <p id="kaizen-modal-fecha-creacion" class="text-gray-800"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600">Fecha Resolución</p>
+                                <p id="kaizen-modal-fecha-cierre" class="text-gray-800">-</p>
+                            </div>
+                        </div>
+                        <div id="kaizen-modal-resolucion-info" class="hidden border-t border-gray-300 pt-3 mt-3">
+                            <div class="mb-3">
+                                <p class="text-sm font-semibold text-gray-600">Estado de Resolución</p>
+                                <p id="kaizen-modal-resolucion-estado" class="text-gray-800 font-semibold"></p>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-sm font-semibold text-gray-600">Notas de Resolución</p>
+                                <p id="kaizen-modal-resolucion-notas" class="text-gray-800"></p>
+                            </div>
+                            <div id="kaizen-modal-evidencia-container" class="hidden">
+                                <p class="text-sm font-semibold text-gray-600 mb-2">Evidencia</p>
+                                <div id="kaizen-modal-evidencia-content"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="kaizen-resolution-form-container" class="hidden">
+                        <div class="border-t border-gray-200 pt-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Resolver Idea Kaizen</h3>
+                            <form id="kaizen-resolution-form" class="space-y-4">
+                                <input type="hidden" id="kaizen-resolution-item-id" />
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Estado de
+                                        Resolución</label>
+                                    <select id="kaizen-resolution-status"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                        <option value="APROBADO">✓ Aprobado - Implementado</option>
+                                        <option value="RECHAZADO">✗ Rechazado - No Viable</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Notas /
+                                        Comentarios</label>
+                                    <textarea id="kaizen-resolution-notes" rows="4" required
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        placeholder="Describe la implementación, beneficios obtenidos, o razón del rechazo..."></textarea>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button type="submit" class="flex-1 font-semibold px-6 py-3 rounded-lg text-white"
+                                        style="background-color:#fe4a00;">Guardar Resolución</button>
+                                    <button type="button" onclick="closeKaizenModal()"
+                                        class="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"
+        class="hidden fixed bottom-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg transition-opacity z-50">
+        <p id="toast-message"></p>
+    </div>
+
+    <script>
+        // ---------- FIREBASE (usa tu config) ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAMCaKwSIY2-PJf1MeXjV-IxQtZ8MNazI",
+            authDomain: "proyecto-lean-tte.firebaseapp.com",
+            projectId: "proyecto-lean-tte",
+            storageBucket: "proyecto-lean-tte.firebasestorage.app",
+            messagingSenderId: "262130237517",
+            appId: "1:262130237517:web:7ff6e88cce794b6b5b9c04"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const staticAppId = firebaseConfig.projectId;
+
+        // Public shared user id (mantener tu enfoque)
+        let currentUserId = "PUBLIC_5S_SHARED_USER";
+
+        // Helpers
+        const toDate = (ts) => ts ? ts.toDate() : new Date();
+        const diffInHours = (d1, d2) => Math.abs(d1.getTime() - d2.getTime()) / (1000 * 60 * 60);
+        function getCollectionRef(collectionName) {
+            if (!currentUserId) return null;
+            const path = `artifacts/${staticAppId}/users/${currentUserId}/${collectionName}`;
+            return db.collection(path);
+        }
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden', 'bg-green-600', 'bg-red-600');
+            toast.classList.add(type === 'success' ? 'bg-green-600' : 'bg-red-600');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // ---------- INIT ----------
+        function initFirebase() {
+            const authStatusElement = document.getElementById('auth-status');
+            authStatusElement.innerHTML = `ID: ${currentUserId.substring(0, 8)}... | <span class="font-bold text-green-600">CONECTADO (PÚBLICO)</span>`;
+            populateDummyData().then(() => {
+                loadDashboard();
+                loadOpenDesvios();
+            });
+        }
+
+        // ---------- Tabs ----------
+        function showTab(tabName) {
+            const tabs = ['dashboard', 'desvios-detalle', 'kaizen-detalle', 'analytics', 'data-entry'];
+            tabs.forEach(tab => {
+                const viewElement = document.getElementById(`view-${tab}`);
+                const tabElement = document.getElementById(`tab-${tab}`);
+                if (viewElement && tabElement) {
+                    viewElement.classList.toggle('hidden', tab !== tabName);
+                    tabElement.classList.toggle('tab-active', tab === tabName);
+                    tabElement.classList.toggle('text-gray-600', tab !== tabName);
+                    tabElement.classList.toggle('hover:text-orange-600', tab !== tabName);
+                    tabElement.classList.toggle('text-orange-600', tab === tabName);
+                }
+            });
+            if (tabName === 'dashboard') loadDashboard();
+            else if (tabName === 'data-entry') loadOpenDesvios();
+            else if (tabName === 'desvios-detalle') loadDesviosDetalle();
+            else if (tabName === 'kaizen-detalle') loadKaizenDetalle();
+            else if (tabName === 'analytics') loadOLAAnalytics('OLA 1');
+        }
+
+        // ---------- DUMMY (opcional) ----------
+        async function populateDummyData() {
+            const auditoriasRef = getCollectionRef('auditorias');
+            if (!auditoriasRef) return;
+            const snapshot = await auditoriasRef.limit(1).get();
+            if (snapshot && !snapshot.empty) return;
+            // Puedes inyectar datos aquí si quieres; por ahora se omite.
+            return;
+        }
+
+        // ---------- DASHBOARD (charts vars) ----------
+        let baselineChart = null, desviosChart = null;
+        async function loadDashboard() {
+            if (!currentUserId) return;
+            await Promise.all([loadShitsukeCards(), loadBaselineChart(), loadEfficiencyKPIs(), loadBestCell()]);
+        }
+
+        async function loadShitsukeCards() {
+            const container = document.getElementById('shitsuke-cards');
+            const olas = ['OLA 1', 'OLA 2', 'OLA 3'];
+            const auditoriasRef = getCollectionRef('auditorias');
+            if (!auditoriasRef) return;
+            const cards = await Promise.all(olas.map(async (ola) => {
+                const q = auditoriasRef.where('ola', '==', ola).where('tipo', '==', 'SHITSUKE').orderBy('fecha', 'desc').limit(4);
+                const snapshot = await q.get();
+                const scores = snapshot.docs.map(d => d.data().puntaje).filter(v => typeof v === 'number');
+                const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : 0;
+                let colorClass = 'border-red-500 text-red-500';
+                if (avgScore >= 90) colorClass = 'border-green-500 text-green-500';
+                else if (avgScore >= 75) colorClass = 'border-yellow-500 text-yellow-500';
+                return `<div class="bg-white rounded-lg shadow-lg p-6 border-t-4 ${colorClass}">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">${ola}</h3>
+                            <p class="text-5xl font-bold ${colorClass.replace('border-', 'text-')} mb-2">${avgScore}%</p>
+                            <p class="text-sm text-gray-600">Promedio últimas ${scores.length} auditorías</p>
+                            <div class="mt-4 pt-4 border-t border-gray-200"><p class="text-xs text-gray-500">Auditadas: ${scores.length}</p></div>
+                        </div>`;
+            }));
+            container.innerHTML = cards.join('');
+        }
+
+        async function loadBaselineChart() {
+            const olas = ['OLA 1', 'OLA 2', 'OLA 3'];
+            const baselineScores = [];
+            const anteultimaScores = [];
+            const ultimaScores = [];
+
+            const kpisRef = getCollectionRef('kpis_generales');
+            const auditoriasRef = getCollectionRef('auditorias');
+            if (!kpisRef || !auditoriasRef) return;
+
+            for (const ola of olas) {
+                // baseline
+                const baselineSnap = await kpisRef.where('ola', '==', ola).limit(1).get();
+                if (!baselineSnap.empty) {
+                    baselineScores.push(baselineSnap.docs[0].data().baseline_score || 0);
+                } else {
+                    baselineScores.push(0);
+                }
+
+                // auditorías SHITSUKE (últimas dos)
+                const audSnap = await auditoriasRef
+                    .where('ola', '==', ola)
+                    .where('tipo', '==', 'SHITSUKE')
+                    .orderBy('fecha', 'desc')
+                    .limit(2)
+                    .get();
+
+                const scores = audSnap.docs.map((d) => d.data().puntaje);
+                ultimaScores.push(scores[0] || 0);
+                anteultimaScores.push(scores[1] || 0);
+            }
+
+            const ctxEl = document.getElementById('baseline-chart');
+            if (!ctxEl) return;
+            const ctx = ctxEl.getContext('2d');
+
+            if (baselineChart) baselineChart.destroy();
+
+            baselineChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: olas,
+                    datasets: [
+                        {
+                            label: 'BASELINE',
+                            data: baselineScores,
+                            backgroundColor: 'rgba(59,130,246,0.7)',
+                            borderColor: 'rgb(59,130,246)',
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Anteúltima Auditoría',
+                            data: anteultimaScores,
+                            backgroundColor: 'rgba(234,179,8,0.7)',
+                            borderColor: 'rgb(234,179,8)',
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Última Auditoría',
+                            data: ultimaScores,
+                            backgroundColor: 'rgba(16,185,129,0.7)',
+                            borderColor: 'rgb(16,185,129)',
+                            borderWidth: 2,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100 } },
+                    plugins: { legend: { position: 'bottom' } },
+                },
+            });
+        }
+
+
+        async function loadEfficiencyKPIs() {
+            const desviosRef = getCollectionRef('desvios_kaizen'); if (!desviosRef) return;
+            const closedSnap = await desviosRef.where('tipo', '==', 'DESVIO').where('estado', '==', 'CERRADO').get();
+            let totalHours = 0, count = 0;
+            closedSnap.docs.forEach(doc => {
+                const data = doc.data();
+                if (data.fecha_cierre && data.fecha_creacion) { totalHours += diffInHours(toDate(data.fecha_cierre), toDate(data.fecha_creacion)); count++; }
+            });
+            const tmrd = count > 0 ? (totalHours / count).toFixed(1) : 0;
+            document.getElementById('tmrd-value').textContent = `${tmrd} h`;
+
+            const kaizenSnap = await desviosRef.where('tipo', '==', 'KAIZEN').where('estado', '==', 'ABIERTO').get();
+            document.getElementById('kaizen-count').textContent = kaizenSnap.size;
+
+            // Desvios chart (all)
+            const allDesvios = await desviosRef.where('tipo', '==', 'DESVIO').get();
+            let abiertos = 0, cerrados = 0;
+            allDesvios.docs.forEach(d => { if (d.data().estado === 'ABIERTO') abiertos++; else cerrados++; });
+            const desviosCtxEl = document.getElementById('desvios-chart'); if (!desviosCtxEl) return;
+            const desvCtx = desviosCtxEl.getContext('2d');
+            if (desviosChart) desviosChart.destroy();
+            desviosChart = new Chart(desvCtx, {
+                type: 'doughnut',
+                data: { labels: ['Abiertos', 'Cerrados'], datasets: [{ data: [abiertos, cerrados], backgroundColor: ['rgba(239,68,68,0.7)', 'rgba(34,197,94,0.7)'], borderColor: ['rgb(239,68,68)', 'rgb(34,197,94)'], borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        async function loadBestCell() {
+            const cells = ['Célula A', 'Célula B', 'Célula C'];
+            let bestCell = '', bestScore = 0;
+            const auditoriasRef = getCollectionRef('auditorias'); if (!auditoriasRef) return;
+            for (const cell of cells) {
+                const q = auditoriasRef.where('auditor_celula', '==', cell).where('tipo', '==', 'SHITSUKE').orderBy('fecha', 'desc').limit(4);
+                const snap = await q.get(); const scores = snap.docs.map(d => d.data().puntaje).filter(v => typeof v === 'number');
+                const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+                if (avg > bestScore) { bestScore = avg; bestCell = cell; }
+            }
+            document.getElementById('best-cell').textContent = bestCell || 'Sin datos';
+        }
+
+        // ---------- DATA ENTRY (forms) ----------
+        window.handleAuditSubmit = async function (e) {
+            e.preventDefault();
+            const form = e.target; const data = Object.fromEntries(new FormData(form).entries());
+            try {
+                await getCollectionRef('auditorias').add({ ola: data.ola, auditor_celula: data.auditor_celula, tipo: data.tipo, puntaje: parseInt(data.puntaje), fecha: firebase.firestore.Timestamp.now() });
+                showToast(`Auditoría de ${data.ola} (${data.tipo}) guardada!`);
+                form.reset(); loadDashboard();
+            } catch (err) { console.error(err); showToast("Error al guardar auditoría", 'error'); }
+        };
+        window.handleDesvioSubmit = async function (e) {
+            e.preventDefault();
+            const form = e.target; const data = Object.fromEntries(new FormData(form).entries());
+            try {
+                await getCollectionRef('desvios_kaizen').add({ tipo: data.tipo, ola: data.ola, descripcion: data.descripcion, estado: 'ABIERTO', fecha_creacion: firebase.firestore.Timestamp.now(), fecha_cierre: null, resolucion_notas: null, resolucion_estado: null });
+                showToast(`Registro de ${data.tipo} para ${data.ola} creado!`);
+                form.reset(); loadOpenDesvios(); loadEfficiencyKPIs();
+            } catch (err) { console.error(err); showToast("Error al guardar registro", 'error'); }
+        };
+
+        // Bind forms (safety if script loads after DOM)
+        window.addEventListener('load', () => {
+            const aForm = document.getElementById('audit-form'); if (aForm) aForm.addEventListener('submit', handleAuditSubmit);
+            const dForm = document.getElementById('desvio-form'); if (dForm) dForm.addEventListener('submit', handleDesvioSubmit);
+            const dResForm = document.getElementById('desvio-resolution-form'); if (dResForm) dResForm.addEventListener('submit', submitDesvioResolution);
+            const kResForm = document.getElementById('kaizen-resolution-form'); if (kResForm) kResForm.addEventListener('submit', submitKaizenResolution);
+        });
+
+        // ---------- OPEN / CLOSE DESVÍOS LIST ----------
+        window.loadOpenDesvios = async function () {
+            const container = document.getElementById('open-desvios');
+            const desviosRef = getCollectionRef('desvios_kaizen'); if (!desviosRef) return;
+            try {
+                const snapshot = await desviosRef.where('tipo', '==', 'DESVIO').where('estado', '==', 'ABIERTO').get();
+                if (snapshot.empty) { container.innerHTML = '<p class="text-gray-500">No hay desvíos abiertos</p>'; return; }
+                container.innerHTML = snapshot.docs.map(doc => {
+                    const d = doc.data(); const id = doc.id; const date = d.fecha_creacion ? toDate(d.fecha_creacion).toLocaleDateString() : 'N/A';
+                    return `<div class="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex-1 mb-3 md:mb-0"><p class="font-semibold text-gray-800">${d.ola} - ${d.descripcion}</p><p class="text-sm text-gray-500">Creado: ${date}</p></div>
+                        <div class="flex gap-2">
+                            <button onclick="openDesvioModal('${id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Ver</button>
+                            <button onclick="closeDesvio('${id}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Cerrar</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (err) { console.error('Error loading open desvios:', err); container.innerHTML = '<p class="text-red-500">Error al cargar desvíos abiertos.</p>'; }
+        };
+
+        async function closeDesvio(desvioId) {
+            try {
+                await getCollectionRef('desvios_kaizen').doc(desvioId).update({ fecha_cierre: firebase.firestore.Timestamp.now(), estado: 'CERRADO' });
+                showToast('Desvío cerrado exitosamente');
+                loadOpenDesvios(); loadDesviosDetalle(); loadEfficiencyKPIs();
+            } catch (err) { console.error(err); showToast('Error al cerrar desvío', 'error'); }
+        }
+
+        // ---------- DESVÍOS DETALLE (tabla + modal) ----------
+        async function loadDesviosDetalle() {
+            const tableBody = document.getElementById('desvios-table-body');
+            const desviosRef = getCollectionRef('desvios_kaizen');
+            if (!desviosRef) return;
+
+            const filterOla = document.getElementById('filter-ola').value;
+            const filterEstado = document.getElementById('filter-estado').value;
+
+            let queryRef = desviosRef.where('tipo', '==', 'DESVIO'); // 🔸 solo desvíos
+            if (filterOla) queryRef = queryRef.where('ola', '==', filterOla);
+            if (filterEstado) queryRef = queryRef.where('estado', '==', filterEstado);
+
+            const snapshot = await queryRef.orderBy('fecha_creacion', 'desc').get();
+
+            // resumen
+            let totalRegistros = snapshot.size;
+            let abiertos = 0;
+            let cerrados = 0;
+            snapshot.docs.forEach((doc) => {
+                const d = doc.data();
+                if (d.estado === 'ABIERTO') abiertos++;
+                else if (d.estado === 'CERRADO') cerrados++;
+            });
+
+            document.getElementById('summary-total').textContent = totalRegistros;
+            document.getElementById('summary-abiertos').textContent = abiertos;
+            document.getElementById('summary-cerrados').textContent = cerrados;
+            document.getElementById('summary-kaizen').textContent = 0; // 🔸 ya no aplica
+
+            if (snapshot.empty) {
+                tableBody.innerHTML =
+                    '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No se encontraron desvíos</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = snapshot.docs
+                .map((doc) => {
+                    const data = doc.data();
+                    const fechaCreacion = toDate(data.fecha_creacion);
+                    const fechaCierre = data.fecha_cierre ? toDate(data.fecha_cierre) : null;
+                    const totalHoursOpen = diffInHours(fechaCierre || new Date(), fechaCreacion);
+                    const diferenciaTiempo =
+                        data.estado === 'CERRADO'
+                            ? totalHoursOpen > 48
+                                ? Math.floor(totalHoursOpen / 24) + ' días'
+                                : totalHoursOpen.toFixed(1) + ' hrs'
+                            : 'ABIERTO';
+                    const estadoBadge =
+                        data.estado === 'ABIERTO'
+                            ? `<span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded mr-2">ABIERTO</span>`
+                            : `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">CERRADO</span>`;
+
+                    return `
+            <tr class="hover:bg-gray-50 cursor-pointer" onclick='openDesvioModal("${doc.id}")'>
+                <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">${fechaCreacion.toLocaleDateString()}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-gray-800">${data.ola}</td>
+                <td class="px-4 py-3 text-sm text-orange-700">Desvío</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${data.descripcion}</td>
+                <td class="px-4 py-3 text-sm">${estadoBadge}</td>
+                <td class="px-4 py-3 text-sm text-gray-700">${diferenciaTiempo}</td>
+            </tr>`;
+                })
+                .join('');
+        }
+
+
+        // ---------- KAIZEN detalle ----------
+        window.loadKaizenDetalle = async function () {
+            const tableBody = document.getElementById('kaizen-table-body');
+            const desviosRef = getCollectionRef('desvios_kaizen'); if (!desviosRef) return;
+            const filterOla = document.getElementById('filter-kaizen-ola').value;
+            const filterEstado = document.getElementById('filter-kaizen-estado').value;
+            let q = desviosRef.where('tipo', '==', 'KAIZEN');
+            if (filterOla) q = q.where('ola', '==', filterOla);
+            if (filterEstado) q = q.where('estado', '==', filterEstado);
+            const snap = await q.orderBy('fecha_creacion', 'desc').get();
+            // summary
+            const total = snap.size;
+            const abiertos = snap.docs.filter(d => d.data().estado === 'ABIERTO').length;
+            const aprobadas = snap.docs.filter(d => d.data().resolucion_estado === 'APROBADO').length;
+            const rechazadas = snap.docs.filter(d => d.data().resolucion_estado === 'RECHAZADO').length;
+            document.getElementById('kaizen-summary-total').textContent = total;
+            document.getElementById('kaizen-summary-abiertos').textContent = abiertos;
+            document.getElementById('kaizen-summary-aprobadas').textContent = aprobadas;
+            document.getElementById('kaizen-summary-rechazadas').textContent = rechazadas;
+            if (snap.empty) { tableBody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">No se encontraron ideas</td></tr>'; return; }
+            tableBody.innerHTML = snap.docs.map(doc => {
+                const d = doc.data(); const fecha = toDate(d.fecha_creacion).toLocaleDateString();
+                return `<tr onclick="openKaizenModal('${doc.id}')" class="hover:bg-gray-50 cursor-pointer">
+                    <td class="px-4 py-3 text-sm text-gray-700">${fecha}</td>
+                    <td class="px-4 py-3 text-sm font-semibold text-gray-800">${d.ola}</td>
+                    <td class="px-4 py-3 text-sm text-gray-700">${d.descripcion}</td>
+                    <td class="px-4 py-3 text-sm">${d.estado}</td>
+                    <td class="px-4 py-3 text-sm">${d.resolucion_estado || '-'}</td>
+                </tr>`;
+            }).join('');
+        };
+
+        // ---------- MODAL: abrir / cerrar y submit resoluciones ----------
+        async function openDesvioModal(id) {
+            const docSnap = await getCollectionRef('desvios_kaizen').doc(id).get();
+            if (!docSnap.exists) { showToast('Registro no encontrado', 'error'); return; }
+            const data = docSnap.data();
+            document.getElementById('desvio-modal-ola').textContent = data.ola || '-';
+            document.getElementById('desvio-modal-descripcion').textContent = data.descripcion || '-';
+            document.getElementById('desvio-modal-fecha-creacion').textContent = data.fecha_creacion ? toDate(data.fecha_creacion).toLocaleString() : '-';
+            document.getElementById('desvio-modal-fecha-cierre').textContent = data.fecha_cierre ? toDate(data.fecha_cierre).toLocaleString() : '-';
+            document.getElementById('desvio-modal-estado-badge').textContent = data.estado || '';
+            if (data.estado === 'CERRADO') { document.getElementById('desvio-modal-resolucion-info').classList.remove('hidden'); document.getElementById('desvio-modal-resolucion-notas').textContent = data.resolucion_notas || ''; } else document.getElementById('desvio-modal-resolucion-info').classList.add('hidden');
+
+            // show resolution form only if abierto
+            if (data.estado === 'ABIERTO') { document.getElementById('desvio-resolution-form-container').classList.remove('hidden'); document.getElementById('desvio-resolution-item-id').value = id; }
+            else document.getElementById('desvio-resolution-form-container').classList.add('hidden');
+
+            document.getElementById('desvio-modal').classList.remove('hidden');
+        }
+        function closeDesvioModal() { document.getElementById('desvio-modal').classList.add('hidden'); }
+
+        async function submitDesvioResolution(e) {
+            e.preventDefault();
+            const id = document.getElementById('desvio-resolution-item-id').value;
+            const notes = document.getElementById('desvio-resolution-notes').value;
+            try {
+                await getCollectionRef('desvios_kaizen').doc(id).update({ estado: 'CERRADO', fecha_cierre: firebase.firestore.Timestamp.now(), resolucion_notas: notes });
+                showToast('Desvío cerrado exitosamente');
+                closeDesvioModal(); loadDesviosDetalle(); loadOpenDesvios(); loadEfficiencyKPIs();
+            } catch (err) { console.error(err); showToast('Error al cerrar desvío', 'error'); }
+        }
+
+        async function openKaizenModal(id) {
+            const docSnap = await getCollectionRef('desvios_kaizen').doc(id).get();
+            if (!docSnap.exists) { showToast('Registro no encontrado', 'error'); return; }
+            const data = docSnap.data();
+            document.getElementById('kaizen-modal-ola').textContent = data.ola || '-';
+            document.getElementById('kaizen-modal-descripcion').textContent = data.descripcion || '-';
+            document.getElementById('kaizen-modal-fecha-creacion').textContent = data.fecha_creacion ? toDate(data.fecha_creacion).toLocaleString() : '-';
+            document.getElementById('kaizen-modal-fecha-cierre').textContent = data.fecha_cierre ? toDate(data.fecha_cierre).toLocaleString() : '-';
+            document.getElementById('kaizen-modal-estado-badge').textContent = data.estado || '';
+            if (data.estado === 'CERRADO') { document.getElementById('kaizen-modal-resolucion-info').classList.remove('hidden'); document.getElementById('kaizen-modal-resolucion-estado').textContent = data.resolucion_estado || ''; document.getElementById('kaizen-modal-resolucion-notas').textContent = data.resolucion_notas || ''; } else document.getElementById('kaizen-modal-resolucion-info').classList.add('hidden');
+
+            if (data.estado === 'ABIERTO') { document.getElementById('kaizen-resolution-form-container').classList.remove('hidden'); document.getElementById('kaizen-resolution-item-id').value = id; }
+            else document.getElementById('kaizen-resolution-form-container').classList.add('hidden');
+
+            document.getElementById('kaizen-modal').classList.remove('hidden');
+        }
+        function closeKaizenModal() { document.getElementById('kaizen-modal').classList.add('hidden'); }
+
+        async function submitKaizenResolution(e) {
+            e.preventDefault();
+            const id = document.getElementById('kaizen-resolution-item-id').value;
+            const status = document.getElementById('kaizen-resolution-status').value;
+            const notes = document.getElementById('kaizen-resolution-notes').value;
+
+            try {
+                await getCollectionRef('desvios_kaizen').doc(id).update({
+                    estado: 'CERRADO',
+                    fecha_cierre: firebase.firestore.Timestamp.now(),
+                    resolucion_estado: status,
+                    resolucion_notas: notes,
+                });
+                showToast('Resolución guardada correctamente');
+                closeKaizenModal();
+                loadKaizenDetalle();
+                loadDesviosDetalle();
+                loadEfficiencyKPIs();
+            } catch (err) {
+                console.error(err);
+                showToast('Error al guardar resolución', 'error');
+            }
+        }
+
+        // ---------- ANALYTICS POR OLA ----------
+        let olaTimelineChart = null, olaDesviosTipoChart = null, olaDesviosEstadoChart = null;
+        async function loadOLAAnalytics(ola, btnEl = null) {
+            // optional highlight of selected button
+            if (btnEl) {
+                document.querySelectorAll('#view-analytics button').forEach(b => b.classList.remove('ring-4'));
+                btnEl.classList.add('ring-4', 'ring-orange-300');
+            }
+            const content = document.getElementById('ola-analytics-content');
+            content.innerHTML = `
+                <section class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">${ola} - Análisis Detallado</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-lg p-6">
+                            <h3 class="text-sm font-semibold text-gray-600">Total Desvíos</h3>
+                            <p id="ola-total-desvios" class="text-3xl font-bold text-orange-600">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-6">
+                            <h3 class="text-sm font-semibold text-gray-600">Desvíos Abiertos</h3>
+                            <p id="ola-desvios-abiertos" class="text-3xl font-bold text-red-600">0</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-6">
+                            <h3 class="text-sm font-semibold text-gray-600">Ideas Kaizen</h3>
+                            <p id="ola-kaizen" class="text-3xl font-bold text-purple-600">0</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-gray-50 rounded-lg p-6"><h3 class="text-lg font-semibold text-gray-800 mb-4">Tendencia (últimos meses)</h3><div class="h-56 chart-container"><canvas id="ola-timeline-chart"></canvas></div></div>
+                        <div class="bg-gray-50 rounded-lg p-6"><h3 class="text-lg font-semibold text-gray-800 mb-4">Distribución por Tipo</h3><div class="h-56 chart-container"><canvas id="ola-desvios-tipo-chart"></canvas></div></div>
+                        <div class="bg-white rounded-lg p-6"><h3 class="text-lg font-semibold text-gray-800 mb-4">Estado de Desvíos</h3><div class="h-56 chart-container"><canvas id="ola-desvios-estado-chart"></canvas></div></div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Desvíos y Kaizen Recientes</h3>
+                        <div id="ola-items-list" class="space-y-2"></div>
+                    </div>
+                </section>
+            `;
+            // load data
+            const snapshot = await db.collection(`artifacts/${staticAppId}/users/${currentUserId}/desvios_kaizen`).where('ola', '==', ola).orderBy('fecha_creacion', 'desc').get();
+            let totalDesvios = 0, desviosAbiertos = 0, kaizenCount = 0;
+            const monthlyData = {}; const tipoData = { DESVIO: 0, KAIZEN: 0 }; const estadoData = { ABIERTO: 0, CERRADO: 0 };
+            snapshot.docs.forEach(doc => {
+                const d = doc.data();
+                const fecha = toDate(d.fecha_creacion);
+                const monthKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+                tipoData[d.tipo] = (tipoData[d.tipo] || 0) + 1;
+                estadoData[d.estado] = (estadoData[d.estado] || 0) + 1;
+                if (d.tipo === 'DESVIO') { totalDesvios++; if (d.estado === 'ABIERTO') desviosAbiertos++; } else kaizenCount++;
+            });
+            document.getElementById('ola-total-desvios').textContent = totalDesvios;
+            document.getElementById('ola-desvios-abiertos').textContent = desviosAbiertos;
+            document.getElementById('ola-kaizen').textContent = kaizenCount;
+
+            // timeline chart
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const ctx1El = document.getElementById('ola-timeline-chart'); if (ctx1El) {
+                const ctx1 = ctx1El.getContext('2d');
+                if (olaTimelineChart) olaTimelineChart.destroy();
+                olaTimelineChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: { labels: sortedMonths, datasets: [{ label: 'Desvíos por Mes', data: sortedMonths.map(m => monthlyData[m]), borderColor: 'rgb(254,74,0)', backgroundColor: 'rgba(254,74,0,0.1)', tension: 0.4, fill: true }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                });
+            }
+
+            // tipo chart
+            const ctx2El = document.getElementById('ola-desvios-tipo-chart'); if (ctx2El) {
+                const ctx2 = ctx2El.getContext('2d'); if (olaDesviosTipoChart) olaDesviosTipoChart.destroy();
+                olaDesviosTipoChart = new Chart(ctx2, { type: 'doughnut', data: { labels: ['Desvíos', 'Kaizen'], datasets: [{ data: [tipoData.DESVIO || 0, tipoData.KAIZEN || 0], backgroundColor: ['rgba(249,115,22,0.7)', 'rgba(168,85,247,0.7)'], borderColor: ['rgb(249,115,22)', 'rgb(168,85,247)'], borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+            }
+
+            // estado chart
+            const ctx3El = document.getElementById('ola-desvios-estado-chart'); if (ctx3El) {
+                const ctx3 = ctx3El.getContext('2d'); if (olaDesviosEstadoChart) olaDesviosEstadoChart.destroy();
+                olaDesviosEstadoChart = new Chart(ctx3, { type: 'bar', data: { labels: ['Abiertos', 'Cerrados'], datasets: [{ label: 'Cantidad', data: [estadoData.ABIERTO || 0, estadoData.CERRADO || 0], backgroundColor: ['rgba(239,68,68,0.7)', 'rgba(34,197,94,0.7)'], borderColor: ['rgb(239,68,68)', 'rgb(34,197,94)'], borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
+            }
+
+            // items list
+            const itemsList = document.getElementById('ola-items-list');
+            if (snapshot.empty) itemsList.innerHTML = '<p class="text-gray-500 text-center py-4">No hay registros para esta OLA</p>';
+            else itemsList.innerHTML = snapshot.docs.slice(0, 10).map(doc => {
+                const d = doc.data();
+                const tipoBadge = d.tipo === 'KAIZEN' ? '<span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded">KAIZEN</span>' : '<span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-semibold rounded">DESVÍO</span>';
+                const estadoBadge = d.estado === 'ABIERTO' ? '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded">ABIERTO</span>' : '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">CERRADO</span>';
+                return `<div class="bg-white p-4 rounded-lg border border-gray-200 hover:border-orange-500 hover:shadow-md transition-all cursor-pointer" onclick='${d.tipo === "KAIZEN" ? `openKaizenModal("${doc.id}")` : `openDesvioModal("${doc.id}")`}'>
+                    <div class="flex items-start justify-between mb-2"><div class="flex gap-2">${tipoBadge}${estadoBadge}</div><span class="text-xs text-gray-500">${toDate(d.fecha_creacion).toLocaleDateString()}</span></div><p class="text-gray-800 text-sm">${d.descripcion}</p>
+                </div>`;
+            }).join('');
+        }
+
+        // ---------- Inicialización ----------
+        window.addEventListener('load', initFirebase);
+
+
+
+    </script>
+</body>
+
+</html>
