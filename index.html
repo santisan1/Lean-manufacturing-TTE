@@ -159,44 +159,83 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-    <header class="text-white shadow-lg" style="background-color: #2A3A5B;">
-        <div class="container mx-auto px-4 py-6">
-            <h1 class="text-2xl md:text-3xl font-bold">Dashboard 5S - Sector Bobinado</h1>
-            <p class="text-gray-300 text-sm md:text-base mt-1">Gestión del Cambio y Sostenibilidad (Shitsuke)</p>
-        </div>
-    </header>
-
-    <nav class="bg-white shadow-md sticky top-0 z-10">
-        <div class="container mx-auto px-4">
-            <div class="flex space-x-8 overflow-x-auto">
-                <button onclick="showTab('dashboard')" id="tab-dashboard"
-                    class="py-4 px-2 font-semibold transition-colors tab-active whitespace-nowrap">Dashboard</button>
-                <button onclick="showTab('desvios-detalle')" id="tab-desvios-detalle"
-                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Desvíos
-                    Detalle</button>
-                <button onclick="showTab('kaizen-detalle')" id="tab-kaizen-detalle"
-                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Ideas
-                    Kaizen</button>
-                <button onclick="showTab('analytics')" id="tab-analytics"
-                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Análisis
-                    por OLA</button>
-                <button onclick="showTab('mapa-planta')" id="tab-mapa-planta"
-                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">
-                    Mapa de Planta
-                </button>
-                <button onclick="showTab('data-entry')" id="tab-data-entry"
-                    class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Entrada
-                    de Datos</button>
+    <div id="login-screen"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900 transition-all duration-500">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm mx-4">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🔒</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Acceso Restringido</h2>
+                <p class="text-gray-500 text-sm mt-2">Ingresa tus credenciales</p>
             </div>
-            <div id="auth-status" class="text-xs text-gray-500 pt-1">Iniciando autenticación.</div>
+
+            <form onsubmit="event.preventDefault(); doLogin();" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Usuario</label>
+                    <input type="text" id="username"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                        placeholder="admin" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Contraseña</label>
+                    <input type="password" id="password"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+                        placeholder="•••••" required>
+                </div>
+
+                <div id="login-error"
+                    class="hidden text-red-500 text-sm text-center bg-red-50 p-2 rounded border border-red-100">
+                    Usuario o contraseña incorrectos
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                    Entrar al Sistema
+                </button>
+            </form>
         </div>
-    </nav>
+    </div>
 
-    <main class="container mx-auto px-4 py-8">
-        <!-- DASHBOARD -->
-        <div id="view-dashboard" class="space-y-8">
+    <div id="app-container" class="hidden opacity-0 transition-opacity duration-1000">
+        <header class="text-white shadow-lg" style="background-color: #2A3A5B;">
+            <div class="container mx-auto px-4 py-6">
+                <h1 class="text-2xl md:text-3xl font-bold">Dashboard 5S - Sector Bobinado</h1>
+                <p class="text-gray-300 text-sm md:text-base mt-1">Gestión del Cambio y Sostenibilidad (Shitsuke)</p>
+            </div>
+        </header>
 
-            <!-- Agrega esto en el dashboard, cerca del título "Célula Estandarizada de la Semana"
+        <nav class="bg-white shadow-md sticky top-0 z-10">
+            <div class="container mx-auto px-4">
+                <div class="flex space-x-8 overflow-x-auto">
+                    <button onclick="showTab('dashboard')" id="tab-dashboard"
+                        class="py-4 px-2 font-semibold transition-colors tab-active whitespace-nowrap">Dashboard</button>
+                    <button onclick="showTab('desvios-detalle')" id="tab-desvios-detalle"
+                        class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Desvíos
+                        Detalle</button>
+                    <button onclick="showTab('kaizen-detalle')" id="tab-kaizen-detalle"
+                        class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Ideas
+                        Kaizen</button>
+                    <button onclick="showTab('analytics')" id="tab-analytics"
+                        class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Análisis
+                        por OLA</button>
+                    <button onclick="showTab('mapa-planta')" id="tab-mapa-planta"
+                        class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">
+                        Mapa de Planta
+                    </button>
+                    <button onclick="showTab('data-entry')" id="tab-data-entry"
+                        class="py-4 px-2 font-semibold transition-colors text-gray-600 hover:text-orange-600 whitespace-nowrap">Entrada
+                        de Datos</button>
+                </div>
+                <div id="auth-status" class="text-xs text-gray-500 pt-1">Iniciando autenticación.</div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto px-4 py-8">
+            <!-- DASHBOARD -->
+            <div id="view-dashboard" class="space-y-8">
+
+                <!-- Agrega esto en el dashboard, cerca del título "Célula Estandarizada de la Semana"
             <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg shadow-lg p-6 text-center relative">
                 <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">🏆 Célula Estandarizada de la Semana</h2>
                 <p id="best-cell" class="text-3xl md:text-4xl font-bold text-gray-900">Cargando...</p>
@@ -226,848 +265,920 @@
             </div> -->
 
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Puntaje de Mantenimiento 5S (Shitsuke)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="shitsuke-cards"></div>
-            </section>
+                <section>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Puntaje de Mantenimiento 5S (Shitsuke)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="shitsuke-cards"></div>
+                </section>
 
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Comparativa BASELINE vs. Último Puntaje</h2>
-                <div class="h-64 md:h-80 chart-container"><canvas id="baseline-chart"></canvas></div>
-            </section>
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Comparativa BASELINE vs. Último Puntaje</h2>
+                    <div class="h-64 md:h-80 chart-container"><canvas id="baseline-chart"></canvas></div>
+                </section>
 
-            <section>
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Eficiencia y Acción</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-2">TMRD (Tiempo Medio de Respuesta)</h3>
-                        <p id="tmrd-value" class="text-4xl font-bold text-orange-600">-- h</p>
-                        <p class="text-sm text-gray-500 mt-2">Promedio de cierre de desvíos</p>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-2">Ideas Kaizen Activas</h3>
-                        <p id="kaizen-count" class="text-4xl font-bold text-green-600">--</p>
-                        <p class="text-sm text-gray-500 mt-2">Ideas de mejora abiertas</p>
+                <section>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Eficiencia y Acción</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">TMRD (Tiempo Medio de Respuesta)</h3>
+                            <p id="tmrd-value" class="text-4xl font-bold text-orange-600">-- h</p>
+                            <p class="text-sm text-gray-500 mt-2">Promedio de cierre de desvíos</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">Ideas Kaizen Activas</h3>
+                            <p id="kaizen-count" class="text-4xl font-bold text-green-600">--</p>
+                            <p class="text-sm text-gray-500 mt-2">Ideas de mejora abiertas</p>
 
-                        <button onclick="showTab('kaizen-detalle')"
-                            class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg">Ver</button>
-                    </div>
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Desvíos (Último Mes)</h3>
-                        <div class="h-40 chart-container"><canvas id="desvios-chart"></canvas></div>
-                    </div>
-                </div>
-                <!-- Ranking Table - Después del cuadro de célula estandarizada -->
-                <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">🏅 Ranking de Células</h3>
-                    <div id="ranking-table" class="space-y-3">
-                        <div class="text-center py-4 text-gray-500">
-                            <p>Cargando ranking...</p>
+                            <button onclick="showTab('kaizen-detalle')"
+                                class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg">Ver</button>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">Desvíos (Último Mes)</h3>
+                            <div class="h-40 chart-container"><canvas id="desvios-chart"></canvas></div>
                         </div>
                     </div>
-                </div>
-            </section>
-        </div>
-
-
-        <!-- DESVÍOS DETALLE -->
-        <div id="view-desvios-detalle" class="hidden space-y-8">
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Filtros de Desvíos y Kaizen</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
-                        <select id="filter-ola"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            onchange="loadDesviosDetalle()">
-                            <option value="">Todas las OLAs</option>
-                            <option value="OLA 1">OLA 1</option>
-                            <option value="OLA 2">OLA 2</option>
-                            <option value="OLA 3">OLA 3</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo</label>
-                        <select id="filter-tipo"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            onchange="loadDesviosDetalle()">
-                            <option value="">Todos</option>
-                            <option value="DESVIO">Desvíos</option>
-                            <option value="KAIZEN">Kaizen</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
-                        <select id="filter-estado"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            onchange="loadDesviosDetalle()">
-                            <option value="">Todos</option>
-                            <option value="ABIERTO">Abiertos</option>
-                            <option value="CERRADO">Cerrados</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="loadDesviosDetalle()"
-                            class="w-full bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold">Refrescar</button>
-                    </div>
-                </div>
-            </section>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Total Registros</h3>
-                    <p id="summary-total" class="text-3xl font-bold text-orange-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Abiertos</h3>
-                    <p id="summary-abiertos" class="text-3xl font-bold text-red-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Cerrados</h3>
-                    <p id="summary-cerrados" class="text-3xl font-bold text-green-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Ideas Kaizen</h3>
-                    <p id="summary-kaizen" class="text-3xl font-bold text-purple-600">0</p>
-                </div>
-            </div>
-
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Listado de Registros</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha Creación</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">OLA</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tipo</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Descripción</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tiempo Abierto</th>
-                            </tr>
-                        </thead>
-                        <tbody id="desvios-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-        <!-- KAIZEN DETALLE -->
-        <div id="view-kaizen-detalle" class="hidden space-y-8">
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Filtros - Ideas Kaizen</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
-                        <select id="filter-kaizen-ola"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            onchange="loadKaizenDetalle()">
-                            <option value="">Todas las OLAs</option>
-                            <option value="OLA 1">OLA 1</option>
-                            <option value="OLA 2">OLA 2</option>
-                            <option value="OLA 3">OLA 3</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
-                        <select id="filter-kaizen-estado"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            onchange="loadKaizenDetalle()">
-                            <option value="">Todos</option>
-                            <option value="ABIERTO">Abiertas</option>
-                            <option value="CERRADO">Cerradas</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="loadKaizenDetalle()"
-                            class="w-full font-semibold px-6 py-2 rounded-lg text-white"
-                            style="background-color:#fe4a00;">Aplicar Filtros</button>
-                    </div>
-                </div>
-            </section>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Total Ideas</h3>
-                    <p id="kaizen-summary-total" class="text-3xl font-bold text-purple-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Abiertas</h3>
-                    <p id="kaizen-summary-abiertos" class="text-3xl font-bold text-blue-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Aprobadas</h3>
-                    <p id="kaizen-summary-aprobadas" class="text-3xl font-bold text-green-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Rechazadas</h3>
-                    <p id="kaizen-summary-rechazadas" class="text-3xl font-bold text-red-600">0</p>
-                </div>
-            </div>
-
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Listado de Ideas Kaizen</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha Creación</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">OLA</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Descripción</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
-                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Resolución</th>
-                            </tr>
-                        </thead>
-                        <tbody id="kaizen-table-body" class="divide-y divide-gray-200"></tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-        <!-- MAPA DE PLANTA -->
-        <!-- MAPA DE PLANTA -->
-        <div id="view-mapa-planta" class="hidden space-y-8">
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-2xl font-bold">Mapa de Planta - Sector Bobinado</h2>
-                        <p class="text-gray-600">Visualiza ubicación de desvíos e ideas Kaizen por OLA</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="toggleMapFilters()" class="px-4 py-2 bg-gray-100 rounded-lg">Filtros</button>
-                        <button onclick="refreshMapMarkers()"
-                            class="px-4 py-2 bg-orange-600 text-white rounded-lg">Actualizar</button>
-                    </div>
-                </div>
-
-                <!-- Filtros del mapa MEJORADOS -->
-                <div id="map-filters" class="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Seleccionar OLA</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <label
-                                class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-colors">
-                                <input type="radio" name="ola-filter" value="all" checked
-                                    onchange="changePlantMap(this.value)"
-                                    class="w-4 h-4 text-orange-600 focus:ring-orange-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-gray-400"></span>
-                                    <span class="text-sm font-semibold text-gray-700">Todas las OLAs</span>
-                                </span>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-colors">
-                                <input type="radio" name="ola-filter" value="OLA 1"
-                                    onchange="changePlantMap(this.value)"
-                                    class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-blue-500"></span>
-                                    <span class="text-sm font-semibold text-gray-700">OLA 1</span>
-                                </span>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 transition-colors">
-                                <input type="radio" name="ola-filter" value="OLA 2"
-                                    onchange="changePlantMap(this.value)"
-                                    class="w-4 h-4 text-green-600 focus:ring-green-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-green-500"></span>
-                                    <span class="text-sm font-semibold text-gray-700">OLA 2</span>
-                                </span>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-purple-300 transition-colors">
-                                <input type="radio" name="ola-filter" value="OLA 3"
-                                    onchange="changePlantMap(this.value)"
-                                    class="w-4 h-4 text-purple-600 focus:ring-purple-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-purple-500"></span>
-                                    <span class="text-sm font-semibold text-gray-700">OLA 3</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="border-t pt-4">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Tipos de Registros</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="filter-map-desvio-abierto" checked
-                                    onchange="debouncedRefreshMapMarkers()"
-                                    class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-red-500"></span>
-                                    <span class="text-sm font-semibold text-gray-700">Desvíos Abiertos</span>
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="filter-map-desvio-cerrado" checked
-                                    onchange="debouncedRefreshMapMarkers()"
-                                    class="w-4 h-4 text-green-600 rounded focus:ring-green-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-green-500"></span>
-                                    <span class="text-sm font-semibold text-gray-700">Desvíos Cerrados</span>
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="filter-map-kaizen-abierto" checked
-                                    onchange="debouncedRefreshMapMarkers()"
-                                    class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-purple-500"></span>
-                                    <span class="text-sm font-semibold text-gray-700">Kaizen Abiertas</span>
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="filter-map-kaizen-cerrado" checked
-                                    onchange="debouncedRefreshMapMarkers()"
-                                    class="w-4 h-4 text-purple-300 rounded focus:ring-purple-500">
-                                <span class="flex items-center gap-2">
-                                    <span class="w-4 h-4 rounded-full bg-purple-300"></span>
-                                    <span class="text-sm font-semibold text-gray-700">Kaizen Cerradas</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Plant Map MEJORADO -->
-                <div class="plant-map-container bg-gray-100 rounded-lg overflow-hidden shadow-inner">
-                    <div style="position:relative;">
-                        <!-- Imagen principal que cambiará según la OLA seleccionada -->
-                        <img id="plant-map-image" class="plant-map-image" src="./planta-todas.png"
-                            alt="Plano de Planta">
-                        <div id="map-markers-container"></div>
-
-                        <!-- Leyenda de áreas -->
-                        <div id="map-legend"
-                            class="absolute bottom-4 right-4 bg-white bg-opacity-90 p-3 rounded-lg shadow-md">
-                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Áreas de las OLAs</h4>
-                            <div class="space-y-1 text-xs">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 bg-blue-500 rounded"></div>
-                                    <span class="text-gray-700">OLA 1 - Rack Almacenamiento</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 bg-green-500 rounded"></div>
-                                    <span class="text-gray-700">OLA 2 - Sector Verticalización</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-3 h-3 bg-purple-500 rounded"></div>
-                                    <span class="text-gray-700">OLA 3 - Almacenamiento varios</span>
-                                </div>
+                    <!-- Ranking Table - Después del cuadro de célula estandarizada -->
+                    <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">🏅 Ranking de Células</h3>
+                        <div id="ranking-table" class="space-y-3">
+                            <div class="text-center py-4 text-gray-500">
+                                <p>Cargando ranking...</p>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <!-- stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="bg-white rounded-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Total</h3>
-                    <p id="map-stat-total" class="text-3xl font-bold text-gray-800">0</p>
-                </div>
-                <div class="bg-white rounded-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Abiertos</h3>
-                    <p id="map-stat-desvios-abiertos" class="text-3xl font-bold text-red-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Kaizen Activas</h3>
-                    <p id="map-stat-kaizen-abiertos" class="text-3xl font-bold text-purple-600">0</p>
-                </div>
-                <div class="bg-white rounded-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-600 mb-2">Resueltos</h3>
-                    <p id="map-stat-cerrados" class="text-3xl font-bold text-green-600">0</p>
-                </div>
+                </section>
             </div>
-        </div>
 
-        <!-- ANALYTICS POR OLA -->
-        <div id="view-analytics" class="hidden space-y-8">
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Análisis Específico por OLA</h2>
-                <div class="flex flex-wrap gap-4">
-                    <button onclick="loadOLAAnalytics('OLA 1', this)"
-                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
-                        data-ola="OLA 1">OLA 1 (Célula A)</button>
-                    <button onclick="loadOLAAnalytics('OLA 2', this)"
-                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
-                        data-ola="OLA 2">OLA 2 (Célula B)</button>
-                    <button onclick="loadOLAAnalytics('OLA 3', this)"
-                        class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
-                        data-ola="OLA 3">OLA 3 (Célula C)</button>
-                </div>
-            </section>
 
-            <div id="ola-analytics-content">
-                <div class="text-center py-12 text-gray-500">
-                    <p class="text-lg">Selecciona una OLA para ver el análisis detallado de la tendencia de desvíos.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- DATA ENTRY -->
-        <!-- REEMPLAZA todo el contenido de <div id="view-data-entry" class="hidden space-y-8"> -->
-
-        <div id="view-data-entry" class="hidden space-y-8">
-            <!-- Sección de Registro Rápido (NUEVO DISEÑO) -->
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">📝 Registro Rápido</h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Tarjeta Desvíos -->
-                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">!</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-orange-800">Nuevo Desvío</h3>
-                        </div>
-                        <p class="text-orange-700 mb-4">Registra un problema o desviación encontrada</p>
-                        <button onclick="showQuickForm('DESVIO')"
-                            class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
-                            Crear Desvío
-                        </button>
-                    </div>
-
-                    <!-- Tarjeta Kaizen -->
-                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">💡</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-purple-800">Idea Kaizen</h3>
-                        </div>
-                        <p class="text-purple-700 mb-4">Sugiere una mejora o innovación</p>
-                        <button onclick="showQuickForm('KAIZEN')"
-                            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
-                            Proponer Idea
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Formulario Dinámico para Desvíos/Kaizen (oculto inicialmente) -->
-            <!-- Formulario Dinámico para Desvíos/Kaizen (oculto inicialmente) -->
-            <section id="quick-form-container" class="bg-white rounded-lg shadow-lg p-6 hidden">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 id="form-title" class="text-2xl font-bold text-gray-800">Registro</h2>
-                    <button onclick="hideQuickForm()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12">
-                            </path>
-                        </svg>
-                    </button>
-                </div>
-
-                <form id="quick-desvio-form" class="space-y-4">
-                    <input type="hidden" id="quick-form-tipo" name="tipo">
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- DESVÍOS DETALLE -->
+            <div id="view-desvios-detalle" class="hidden space-y-8">
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Filtros de Desvíos y Kaizen</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">📍 OLA</label>
-                            <select name="ola" id="quick-ola" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                                <option value="">Seleccionar OLA</option>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
+                            <select id="filter-ola"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                onchange="loadDesviosDetalle()">
+                                <option value="">Todas las OLAs</option>
                                 <option value="OLA 1">OLA 1</option>
                                 <option value="OLA 2">OLA 2</option>
                                 <option value="OLA 3">OLA 3</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">📄 Descripción</label>
-                        <textarea name="descripcion" id="quick-descripcion" rows="3" required
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            placeholder="Describe brevemente..."></textarea>
-                    </div>
-
-                    <!-- NUEVA SECCIÓN: Solo para Kaizen - Información de Costos -->
-                    <div id="kaizen-cost-section"
-                        class="hidden space-y-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
-                        <h3 class="text-lg font-semibold text-purple-800">💡 Información de la Idea</h3>
-
                         <div>
-                            <label class="block text-sm font-semibold text-purple-700 mb-2">
-                                ¿Tu idea necesita comprar algo?
-                            </label>
-                            <select name="necesita_compra" id="necesita-compra"
-                                onchange="toggleMaterialInfo(this.value)"
-                                class="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-                                <option value="no">No, es solo reorganizar/mejorar lo que hay</option>
-                                <option value="si">Sí, necesitamos comprar materiales</option>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo</label>
+                            <select id="filter-tipo"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                onchange="loadDesviosDetalle()">
+                                <option value="">Todos</option>
+                                <option value="DESVIO">Desvíos</option>
+                                <option value="KAIZEN">Kaizen</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                            <select id="filter-estado"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                onchange="loadDesviosDetalle()">
+                                <option value="">Todos</option>
+                                <option value="ABIERTO">Abiertos</option>
+                                <option value="CERRADO">Cerrados</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="loadDesviosDetalle()"
+                                class="w-full bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold">Refrescar</button>
+                        </div>
+                    </div>
+                </section>
 
-                        <!-- Solo aparece si necesita comprar -->
-                        <div id="material-info" class="hidden space-y-3 p-3 bg-purple-100 rounded-lg">
-                            <div>
-                                <label class="block text-sm font-semibold text-purple-700 mb-2">
-                                    ¿Qué materiales necesitás?
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Total Registros</h3>
+                        <p id="summary-total" class="text-3xl font-bold text-orange-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Abiertos</h3>
+                        <p id="summary-abiertos" class="text-3xl font-bold text-red-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Cerrados</h3>
+                        <p id="summary-cerrados" class="text-3xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Ideas Kaizen</h3>
+                        <p id="summary-kaizen" class="text-3xl font-bold text-purple-600">0</p>
+                    </div>
+                </div>
+
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Listado de Registros</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha Creación
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">OLA</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tipo</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Descripción</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tiempo Abierto
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="desvios-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- KAIZEN DETALLE -->
+            <div id="view-kaizen-detalle" class="hidden space-y-8">
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Filtros - Ideas Kaizen</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
+                            <select id="filter-kaizen-ola"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                onchange="loadKaizenDetalle()">
+                                <option value="">Todas las OLAs</option>
+                                <option value="OLA 1">OLA 1</option>
+                                <option value="OLA 2">OLA 2</option>
+                                <option value="OLA 3">OLA 3</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                            <select id="filter-kaizen-estado"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                onchange="loadKaizenDetalle()">
+                                <option value="">Todos</option>
+                                <option value="ABIERTO">Abiertas</option>
+                                <option value="CERRADO">Cerradas</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="loadKaizenDetalle()"
+                                class="w-full font-semibold px-6 py-2 rounded-lg text-white"
+                                style="background-color:#fe4a00;">Aplicar Filtros</button>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Total Ideas</h3>
+                        <p id="kaizen-summary-total" class="text-3xl font-bold text-purple-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Abiertas</h3>
+                        <p id="kaizen-summary-abiertos" class="text-3xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Aprobadas</h3>
+                        <p id="kaizen-summary-aprobadas" class="text-3xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Rechazadas</h3>
+                        <p id="kaizen-summary-rechazadas" class="text-3xl font-bold text-red-600">0</p>
+                    </div>
+                </div>
+
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Listado de Ideas Kaizen</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Fecha Creación
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">OLA</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Descripción</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Estado</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Resolución</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kaizen-table-body" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- MAPA DE PLANTA -->
+            <!-- MAPA DE PLANTA -->
+            <div id="view-mapa-planta" class="hidden space-y-8">
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Mapa de Planta - Sector Bobinado</h2>
+                            <p class="text-gray-600">Visualiza ubicación de desvíos e ideas Kaizen por OLA</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="toggleMapFilters()"
+                                class="px-4 py-2 bg-gray-100 rounded-lg">Filtros</button>
+                            <button onclick="refreshMapMarkers()"
+                                class="px-4 py-2 bg-orange-600 text-white rounded-lg">Actualizar</button>
+                        </div>
+                    </div>
+
+                    <!-- Filtros del mapa MEJORADOS -->
+                    <div id="map-filters" class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Seleccionar OLA</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <label
+                                    class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-orange-300 transition-colors">
+                                    <input type="radio" name="ola-filter" value="all" checked
+                                        onchange="changePlantMap(this.value)"
+                                        class="w-4 h-4 text-orange-600 focus:ring-orange-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-gray-400"></span>
+                                        <span class="text-sm font-semibold text-gray-700">Todas las OLAs</span>
+                                    </span>
                                 </label>
-                                <input type="text" name="materiales" id="materiales-input"
-                                    class="w-full px-4 py-2 border border-purple-300 rounded-lg"
-                                    placeholder="Ej: Estante metálico, tornillos, etc.">
+                                <label
+                                    class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                                    <input type="radio" name="ola-filter" value="OLA 1"
+                                        onchange="changePlantMap(this.value)"
+                                        class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-blue-500"></span>
+                                        <span class="text-sm font-semibold text-gray-700">OLA 1</span>
+                                    </span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 transition-colors">
+                                    <input type="radio" name="ola-filter" value="OLA 2"
+                                        onchange="changePlantMap(this.value)"
+                                        class="w-4 h-4 text-green-600 focus:ring-green-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-green-500"></span>
+                                        <span class="text-sm font-semibold text-gray-700">OLA 2</span>
+                                    </span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-3 cursor-pointer p-3 bg-white rounded-lg border-2 border-gray-200 hover:border-purple-300 transition-colors">
+                                    <input type="radio" name="ola-filter" value="OLA 3"
+                                        onchange="changePlantMap(this.value)"
+                                        class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-purple-500"></span>
+                                        <span class="text-sm font-semibold text-gray-700">OLA 3</span>
+                                    </span>
+                                </label>
                             </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-purple-700 mb-2">
-                                    ¿Más o menos cuánto creés que sale?
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Tipos de Registros</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="filter-map-desvio-abierto" checked
+                                        onchange="debouncedRefreshMapMarkers()"
+                                        class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-red-500"></span>
+                                        <span class="text-sm font-semibold text-gray-700">Desvíos Abiertos</span>
+                                    </span>
                                 </label>
-                                <select name="costo_aproximado" id="costo-aproximado"
-                                    class="w-full px-4 py-2 border border-purple-300 rounded-lg">
-                                    <option value="poco">Poco (menos de $10.000)</option>
-                                    <option value="moderado">Moderado ($10.000 - $50.000)</option>
-                                    <option value="importante">Importante (más de $50.000)</option>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="filter-map-desvio-cerrado" checked
+                                        onchange="debouncedRefreshMapMarkers()"
+                                        class="w-4 h-4 text-green-600 rounded focus:ring-green-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-green-500"></span>
+                                        <span class="text-sm font-semibold text-gray-700">Desvíos Cerrados</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="filter-map-kaizen-abierto" checked
+                                        onchange="debouncedRefreshMapMarkers()"
+                                        class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-purple-500"></span>
+                                        <span class="text-sm font-semibold text-gray-700">Kaizen Abiertas</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="filter-map-kaizen-cerrado" checked
+                                        onchange="debouncedRefreshMapMarkers()"
+                                        class="w-4 h-4 text-purple-300 rounded focus:ring-purple-500">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-purple-300"></span>
+                                        <span class="text-sm font-semibold text-gray-700">Kaizen Cerradas</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Plant Map MEJORADO -->
+                    <div class="plant-map-container bg-gray-100 rounded-lg overflow-hidden shadow-inner">
+                        <div style="position:relative;">
+                            <!-- Imagen principal que cambiará según la OLA seleccionada -->
+                            <img id="plant-map-image" class="plant-map-image" src="./planta-todas.png"
+                                alt="Plano de Planta">
+                            <div id="map-markers-container"></div>
+
+                            <!-- Leyenda de áreas -->
+                            <div id="map-legend"
+                                class="absolute bottom-4 right-4 bg-white bg-opacity-90 p-3 rounded-lg shadow-md">
+                                <h4 class="text-sm font-semibold text-gray-800 mb-2">Áreas de las OLAs</h4>
+                                <div class="space-y-1 text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 bg-blue-500 rounded"></div>
+                                        <span class="text-gray-700">OLA 1 - Rack Almacenamiento</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 bg-green-500 rounded"></div>
+                                        <span class="text-gray-700">OLA 2 - Sector Verticalización</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-3 h-3 bg-purple-500 rounded"></div>
+                                        <span class="text-gray-700">OLA 3 - Almacenamiento varios</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="bg-white rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Total</h3>
+                        <p id="map-stat-total" class="text-3xl font-bold text-gray-800">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Desvíos Abiertos</h3>
+                        <p id="map-stat-desvios-abiertos" class="text-3xl font-bold text-red-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Kaizen Activas</h3>
+                        <p id="map-stat-kaizen-abiertos" class="text-3xl font-bold text-purple-600">0</p>
+                    </div>
+                    <div class="bg-white rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-600 mb-2">Resueltos</h3>
+                        <p id="map-stat-cerrados" class="text-3xl font-bold text-green-600">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALYTICS POR OLA -->
+            <div id="view-analytics" class="hidden space-y-8">
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Análisis Específico por OLA</h2>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="loadOLAAnalytics('OLA 1', this)"
+                            class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
+                            data-ola="OLA 1">OLA 1 (Célula A)</button>
+                        <button onclick="loadOLAAnalytics('OLA 2', this)"
+                            class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
+                            data-ola="OLA 2">OLA 2 (Célula B)</button>
+                        <button onclick="loadOLAAnalytics('OLA 3', this)"
+                            class="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg"
+                            data-ola="OLA 3">OLA 3 (Célula C)</button>
+                    </div>
+                </section>
+
+                <div id="ola-analytics-content">
+                    <div class="text-center py-12 text-gray-500">
+                        <p class="text-lg">Selecciona una OLA para ver el análisis detallado de la tendencia de desvíos.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATA ENTRY -->
+            <!-- REEMPLAZA todo el contenido de <div id="view-data-entry" class="hidden space-y-8"> -->
+
+            <div id="view-data-entry" class="hidden space-y-8">
+                <!-- Sección de Registro Rápido (NUEVO DISEÑO) -->
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">📝 Registro Rápido</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Tarjeta Desvíos -->
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold">!</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-orange-800">Nuevo Desvío</h3>
+                            </div>
+                            <p class="text-orange-700 mb-4">Registra un problema o desviación encontrada</p>
+                            <button onclick="showQuickForm('DESVIO')"
+                                class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
+                                Crear Desvío
+                            </button>
+                        </div>
+
+                        <!-- Tarjeta Kaizen -->
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-bold">💡</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-purple-800">Idea Kaizen</h3>
+                            </div>
+                            <p class="text-purple-700 mb-4">Sugiere una mejora o innovación</p>
+                            <button onclick="showQuickForm('KAIZEN')"
+                                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors">
+                                Proponer Idea
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Formulario Dinámico para Desvíos/Kaizen (oculto inicialmente) -->
+                <!-- Formulario Dinámico para Desvíos/Kaizen (oculto inicialmente) -->
+                <section id="quick-form-container" class="bg-white rounded-lg shadow-lg p-6 hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 id="form-title" class="text-2xl font-bold text-gray-800">Registro</h2>
+                        <button onclick="hideQuickForm()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form id="quick-desvio-form" class="space-y-4">
+                        <input type="hidden" id="quick-form-tipo" name="tipo">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">📍 OLA</label>
+                                <select name="ola" id="quick-ola" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                    <option value="">Seleccionar OLA</option>
+                                    <option value="OLA 1">OLA 1</option>
+                                    <option value="OLA 2">OLA 2</option>
+                                    <option value="OLA 3">OLA 3</option>
                                 </select>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-purple-700 mb-2">
-                                ¿Qué ganamos con tu idea?
-                            </label>
-                            <select name="beneficio_principal" id="beneficio-principal"
-                                class="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-                                <option value="tiempo">⏱️ Ahorro tiempo (voy a trabajar más rápido)</option>
-                                <option value="esfuerzo">💪 Menor esfuerzo físico</option>
-                                <option value="seguridad">🛡️ Más seguridad</option>
-                                <option value="calidad">⭐ Mejor calidad del trabajo</option>
-                                <option value="orden">📁 Más orden y organización</option>
-                                <option value="otro">Otro beneficio</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Sección de Fotos para Desvíos/Kaizen -->
-                    <div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                        <label class="block text-sm font-semibold text-green-800 mb-2">
-                            📸 Agregar Foto del Problema (Opcional)
-                        </label>
-
-                        <input type="file" id="foto-input" accept="image/*" capture="environment" class="hidden">
-
-                        <div class="flex gap-2 mb-2">
-                            <button type="button" onclick="takePhoto()"
-                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg text-center text-sm">
-                                📷 Sacar Foto
-                            </button>
-                            <button type="button" onclick="chooseFromGallery()"
-                                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-center text-sm">
-                                🖼️ Galería
-                            </button>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">📄 Descripción</label>
+                            <textarea name="descripcion" id="quick-descripcion" rows="3" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                placeholder="Describe brevemente..."></textarea>
                         </div>
 
-                        <!-- Vista previa -->
-                        <div id="foto-preview" class="hidden mt-2 text-center">
-                            <img id="foto-preview-img" class="max-w-full rounded-lg shadow-md mx-auto max-h-32">
-                            <button type="button" onclick="removePhoto()"
-                                class="mt-1 bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded">
-                                ❌ Eliminar
-                            </button>
-                        </div>
-                    </div>
+                        <!-- NUEVA SECCIÓN: Solo para Kaizen - Información de Costos -->
+                        <div id="kaizen-cost-section"
+                            class="hidden space-y-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                            <h3 class="text-lg font-semibold text-purple-800">💡 Información de la Idea</h3>
 
-                    <div class="flex flex-col gap-4 pt-4">
-                        <button type="button" onclick="saveWithLocation()"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-center">
-                            🗺️ Seleccionar Ubicación y Guardar
-                        </button>
-
-                        <button type="button" onclick="hideQuickForm()"
-                            class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-8 py-3 rounded-lg transition-colors">
-                            ❌ Cancelar
-                        </button>
-                    </div>
-                </form>
-            </section>
-
-            <!-- SECCIÓN ORIGINAL DE AUDITORÍAS (igual a tu versión) -->
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">Registro de Auditoría</h2>
-                <form id="audit-form" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
-                            <select name="ola" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                                <option value="">Seleccionar OLA</option>
-                                <option value="OLA 1">OLA 1</option>
-                                <option value="OLA 2">OLA 2</option>
-                                <option value="OLA 3">OLA 3</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Célula Auditora</label>
-                            <select name="auditor_celula" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                                <option value="">Seleccionar Célula</option>
-                                <option value="Célula A">Célula A</option>
-                                <option value="Célula B">Célula B</option>
-                                <option value="Célula C">Célula C</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Auditoría</label>
-                            <select name="tipo" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                                <option value="">Seleccionar Tipo</option>
-                                <option value="BASELINE">BASELINE</option>
-                                <option value="CERTIFICACION">CERTIFICACIÓN</option>
-                                <option value="SHITSUKE">SHITSUKE (Mantenimiento)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Puntaje (0-100)</label>
-                            <input type="number" name="puntaje" min="0" max="100" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                        </div>
-                    </div>
-                    <button type="submit"
-                        class="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-3 rounded-lg">
-                        Guardar Auditoría
-                    </button>
-                </form>
-            </section>
-
-            <!-- Desvíos Abiertos -->
-            <section class="bg-white rounded-lg shadow-lg p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">⚠️ Desvíos Abiertos</h2>
-                    <span id="open-desvios-count"
-                        class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        Cargando...
-                    </span>
-                </div>
-                <div id="open-desvios" class="space-y-3">
-                    <div class="text-center py-8 text-gray-500">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mb-2">
-                        </div>
-                        <p>Cargando desvíos abiertos...</p>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- MODALS -->
-    <div id="desvio-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-        <div class="modal-backdrop fixed inset-0" onclick="closeDesvioModal()"></div>
-        <div class="flex items-center justify-center min-h-screen px-4 py-8">
-            <div class="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div
-                    class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
-                    <h2 class="text-2xl font-bold text-gray-800">Detalle de Desvío</h2>
-                    <button onclick="closeDesvioModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="px-6 py-6 space-y-6">
-                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-                        <div class="flex items-center gap-3">
-                            <span
-                                class="px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">DESVÍO</span>
-                            <span id="desvio-modal-estado-badge"
-                                class="px-3 py-1 rounded-full text-sm font-semibold"></span>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-gray-600">OLA</p>
-                            <p id="desvio-modal-ola" class="text-lg font-bold text-gray-800"></p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-gray-600">Descripción</p>
-                            <p id="desvio-modal-descripcion" class="text-gray-800"></p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <p class="text-sm font-semibold text-gray-600">Fecha Creación</p>
-                                <p id="desvio-modal-fecha-creacion" class="text-gray-800"></p>
+                                <label class="block text-sm font-semibold text-purple-700 mb-2">
+                                    ¿Tu idea necesita comprar algo?
+                                </label>
+                                <select name="necesita_compra" id="necesita-compra"
+                                    onchange="toggleMaterialInfo(this.value)"
+                                    class="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                    <option value="no">No, es solo reorganizar/mejorar lo que hay</option>
+                                    <option value="si">Sí, necesitamos comprar materiales</option>
+                                </select>
                             </div>
-                            <div>
-                                <p class="text-sm font-semibold text-gray-600">Fecha Cierre</p>
-                                <p id="desvio-modal-fecha-cierre" class="text-gray-800">-</p>
-                            </div>
-                        </div>
-                        <div id="desvio-modal-resolucion-info" class="hidden border-t border-gray-300 pt-3 mt-3">
-                            <div class="mb-3">
-                                <p class="text-sm font-semibold text-gray-600">Notas de Cierre</p>
-                                <p id="desvio-modal-resolucion-notas" class="text-gray-800"></p>
-                            </div>
-                            <div id="desvio-modal-evidencia-container" class="hidden">
-                                <p class="text-sm font-semibold text-gray-600 mb-2">Evidencia</p>
-                                <div id="desvio-modal-evidencia-content"></div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div id="desvio-resolution-form-container" class="hidden">
-                        <div class="border-t border-gray-200 pt-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4">Cerrar Desvío</h3>
-                            <form id="desvio-resolution-form" class="space-y-4">
-                                <input type="hidden" id="desvio-resolution-item-id" />
+                            <!-- Solo aparece si necesita comprar -->
+                            <div id="material-info" class="hidden space-y-3 p-3 bg-purple-100 rounded-lg">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Notas /
-                                        Comentarios</label>
-                                    <textarea id="desvio-resolution-notes" rows="4" required
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                                        placeholder="Describe las acciones tomadas para corregir el desvío..."></textarea>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button type="submit" class="flex-1 font-semibold px-6 py-3 rounded-lg text-white"
-                                        style="background-color:#fe4a00;">Cerrar Desvío</button>
-                                    <button type="button" onclick="closeDesvioModal()"
-                                        class="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700">Cancelar</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="kaizen-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-        <div class="modal-backdrop fixed inset-0" onclick="closeKaizenModal()"></div>
-        <div class="flex items-center justify-center min-h-screen px-4 py-8">
-            <div class="relative bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-                <div
-                    class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
-                    <h2 class="text-2xl font-bold text-gray-800">Detalle de Idea Kaizen</h2>
-                    <button onclick="closeKaizenModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12">
-                            </path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="px-6 py-6 space-y-6">
-                    <div class="bg-gray-50 rounded-lg p-4 space-y-4">
-                        <div class="flex items-center gap-3">
-                            <span
-                                class="px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">KAIZEN</span>
-                            <span id="kaizen-modal-estado-badge"
-                                class="px-3 py-1 rounded-full text-sm font-semibold"></span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-sm font-semibold text-gray-600">OLA</p>
-                                <p id="kaizen-modal-ola" class="text-lg font-bold text-gray-800"></p>
-                            </div>
-                            <div>
-                                <p class="text-sm font-semibold text-gray-600">Fecha Creación</p>
-                                <p id="kaizen-modal-fecha-creacion" class="text-gray-800"></p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p class="text-sm font-semibold text-gray-600">Descripción de la Idea</p>
-                            <p id="kaizen-modal-descripcion" class="text-gray-800 text-lg bg-white p-3 rounded border">
-                            </p>
-                        </div>
-
-                        <!-- NUEVA SECCIÓN: Información de Costos y Beneficios -->
-                        <div id="kaizen-info-adicional" class="hidden space-y-4 border-t pt-4 mt-4">
-                            <h4 class="text-lg font-semibold text-purple-800">📊 Información de la Idea</h4>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-600">¿Necesita Compra?</p>
-                                    <p id="kaizen-modal-necesita-compra" class="text-gray-800 font-semibold"></p>
+                                    <label class="block text-sm font-semibold text-purple-700 mb-2">
+                                        ¿Qué materiales necesitás?
+                                    </label>
+                                    <input type="text" name="materiales" id="materiales-input"
+                                        class="w-full px-4 py-2 border border-purple-300 rounded-lg"
+                                        placeholder="Ej: Estante metálico, tornillos, etc.">
                                 </div>
                                 <div>
-                                    <p class="text-sm font-semibold text-gray-600">Beneficio Principal</p>
-                                    <p id="kaizen-modal-beneficio" class="text-gray-800"></p>
-                                </div>
-                            </div>
-
-                            <div id="kaizen-materiales-info" class="hidden bg-purple-50 p-3 rounded-lg">
-                                <p class="text-sm font-semibold text-purple-700 mb-2">📦 Materiales Necesarios</p>
-                                <p id="kaizen-modal-materiales" class="text-gray-800 mb-2"></p>
-                                <p class="text-sm font-semibold text-purple-700">💰 Costo Aproximado</p>
-                                <p id="kaizen-modal-costo" class="text-gray-800 font-semibold"></p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-sm font-semibold text-gray-600">Fecha Resolución</p>
-                                <p id="kaizen-modal-fecha-cierre" class="text-gray-800">-</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Foto si existe -->
-                    <div id="kaizen-foto-container" class="hidden">
-                        <!-- Se llena dinámicamente -->
-                    </div>
-
-                    <div id="kaizen-modal-resolucion-info" class="hidden border-t border-gray-300 pt-4 mt-4">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-3">📋 Resolución</h4>
-                        <div class="mb-3">
-                            <p class="text-sm font-semibold text-gray-600">Estado de Resolución</p>
-                            <p id="kaizen-modal-resolucion-estado" class="text-gray-800 font-semibold"></p>
-                        </div>
-                        <div class="mb-3">
-                            <p class="text-sm font-semibold text-gray-600">Notas de Resolución</p>
-                            <p id="kaizen-modal-resolucion-notas" class="text-gray-800 bg-white p-3 rounded border"></p>
-                        </div>
-                        <div id="kaizen-modal-evidencia-container" class="hidden">
-                            <p class="text-sm font-semibold text-gray-600 mb-2">Evidencia</p>
-                            <div id="kaizen-modal-evidencia-content"></div>
-                        </div>
-                    </div>
-
-                    <div id="kaizen-resolution-form-container" class="hidden">
-                        <div class="border-t border-gray-200 pt-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4">Resolver Idea Kaizen</h3>
-                            <form id="kaizen-resolution-form" class="space-y-4">
-                                <input type="hidden" id="kaizen-resolution-item-id" />
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Estado de
-                                        Resolución</label>
-                                    <select id="kaizen-resolution-status"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
-                                        <option value="APROBADO">✓ Aprobado - Implementado</option>
-                                        <option value="RECHAZADO">✗ Rechazado - No Viable</option>
+                                    <label class="block text-sm font-semibold text-purple-700 mb-2">
+                                        ¿Más o menos cuánto creés que sale?
+                                    </label>
+                                    <select name="costo_aproximado" id="costo-aproximado"
+                                        class="w-full px-4 py-2 border border-purple-300 rounded-lg">
+                                        <option value="poco">Poco (menos de $10.000)</option>
+                                        <option value="moderado">Moderado ($10.000 - $50.000)</option>
+                                        <option value="importante">Importante (más de $50.000)</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Notas /
-                                        Comentarios</label>
-                                    <textarea id="kaizen-resolution-notes" rows="4" required
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                                        placeholder="Describe la implementación, beneficios obtenidos, o razón del rechazo..."></textarea>
-                                </div>
-                                <div class="flex gap-3">
-                                    <button type="submit" class="flex-1 font-semibold px-6 py-3 rounded-lg text-white"
-                                        style="background-color:#fe4a00;">Guardar Resolución</button>
-                                    <button type="button" onclick="closeKaizenModal()"
-                                        class="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700">Cancelar</button>
-                                </div>
-                            </form>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-purple-700 mb-2">
+                                    ¿Qué ganamos con tu idea?
+                                </label>
+                                <select name="beneficio_principal" id="beneficio-principal"
+                                    class="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                    <option value="tiempo">⏱️ Ahorro tiempo (voy a trabajar más rápido)</option>
+                                    <option value="esfuerzo">💪 Menor esfuerzo físico</option>
+                                    <option value="seguridad">🛡️ Más seguridad</option>
+                                    <option value="calidad">⭐ Mejor calidad del trabajo</option>
+                                    <option value="orden">📁 Más orden y organización</option>
+                                    <option value="otro">Otro beneficio</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Fotos para Desvíos/Kaizen -->
+                        <div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <label class="block text-sm font-semibold text-green-800 mb-2">
+                                📸 Agregar Foto del Problema (Opcional)
+                            </label>
+
+                            <input type="file" id="foto-input" accept="image/*" capture="environment" class="hidden">
+
+                            <div class="flex gap-2 mb-2">
+                                <button type="button" onclick="takePhoto()"
+                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg text-center text-sm">
+                                    📷 Sacar Foto
+                                </button>
+                                <button type="button" onclick="chooseFromGallery()"
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-center text-sm">
+                                    🖼️ Galería
+                                </button>
+                            </div>
+
+                            <!-- Vista previa -->
+                            <div id="foto-preview" class="hidden mt-2 text-center">
+                                <img id="foto-preview-img" class="max-w-full rounded-lg shadow-md mx-auto max-h-32">
+                                <button type="button" onclick="removePhoto()"
+                                    class="mt-1 bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded">
+                                    ❌ Eliminar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-4 pt-4">
+                            <button type="button" onclick="saveWithLocation()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-center">
+                                🗺️ Seleccionar Ubicación y Guardar
+                            </button>
+
+                            <button type="button" onclick="hideQuickForm()"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-8 py-3 rounded-lg transition-colors">
+                                ❌ Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- SECCIÓN ORIGINAL DE AUDITORÍAS (igual a tu versión) -->
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Registro de Auditoría</h2>
+                    <form id="audit-form" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">OLA</label>
+                                <select name="ola" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                    <option value="">Seleccionar OLA</option>
+                                    <option value="OLA 1">OLA 1</option>
+                                    <option value="OLA 2">OLA 2</option>
+                                    <option value="OLA 3">OLA 3</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Célula Auditora</label>
+                                <select name="auditor_celula" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                    <option value="">Seleccionar Célula</option>
+                                    <option value="Célula A">Célula A</option>
+                                    <option value="Célula B">Célula B</option>
+                                    <option value="Célula C">Célula C</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Auditoría</label>
+                                <select name="tipo" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                    <option value="">Seleccionar Tipo</option>
+                                    <option value="BASELINE">BASELINE</option>
+                                    <option value="CERTIFICACION">CERTIFICACIÓN</option>
+                                    <option value="SHITSUKE">SHITSUKE (Mantenimiento)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Puntaje (0-100)</label>
+                                <input type="number" name="puntaje" min="0" max="100" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="w-full md:w-auto bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-3 rounded-lg">
+                            Guardar Auditoría
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Desvíos Abiertos -->
+                <section class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">⚠️ Desvíos Abiertos</h2>
+                        <span id="open-desvios-count"
+                            class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            Cargando...
+                        </span>
+                    </div>
+                    <div id="open-desvios" class="space-y-3">
+                        <div class="text-center py-8 text-gray-500">
+                            <div
+                                class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mb-2">
+                            </div>
+                            <p>Cargando desvíos abiertos...</p>
                         </div>
                     </div>
+                </section>
+            </div>
+        </main>
 
+        <!-- MODALS -->
+        <div id="desvio-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+            <div class="modal-backdrop fixed inset-0" onclick="closeDesvioModal()"></div>
+            <div class="flex items-center justify-center min-h-screen px-4 py-8">
+                <div class="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div
+                        class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
+                        <h2 class="text-2xl font-bold text-gray-800">Detalle de Desvío</h2>
+                        <button onclick="closeDesvioModal()"
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="px-6 py-6 space-y-6">
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-800">DESVÍO</span>
+                                <span id="desvio-modal-estado-badge"
+                                    class="px-3 py-1 rounded-full text-sm font-semibold"></span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600">OLA</p>
+                                <p id="desvio-modal-ola" class="text-lg font-bold text-gray-800"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600">Descripción</p>
+                                <p id="desvio-modal-descripcion" class="text-gray-800"></p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-600">Fecha Creación</p>
+                                    <p id="desvio-modal-fecha-creacion" class="text-gray-800"></p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-600">Fecha Cierre</p>
+                                    <p id="desvio-modal-fecha-cierre" class="text-gray-800">-</p>
+                                </div>
+                            </div>
+                            <div id="desvio-modal-resolucion-info" class="hidden border-t border-gray-300 pt-3 mt-3">
+                                <div class="mb-3">
+                                    <p class="text-sm font-semibold text-gray-600">Notas de Cierre</p>
+                                    <p id="desvio-modal-resolucion-notas" class="text-gray-800"></p>
+                                </div>
+                                <div id="desvio-modal-evidencia-container" class="hidden">
+                                    <p class="text-sm font-semibold text-gray-600 mb-2">Evidencia</p>
+                                    <div id="desvio-modal-evidencia-content"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="desvio-resolution-form-container" class="hidden">
+                            <div class="border-t border-gray-200 pt-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Cerrar Desvío</h3>
+                                <form id="desvio-resolution-form" class="space-y-4">
+                                    <input type="hidden" id="desvio-resolution-item-id" />
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Notas /
+                                            Comentarios</label>
+                                        <textarea id="desvio-resolution-notes" rows="4" required
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                            placeholder="Describe las acciones tomadas para corregir el desvío..."></textarea>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <button type="submit"
+                                            class="flex-1 font-semibold px-6 py-3 rounded-lg text-white"
+                                            style="background-color:#fe4a00;">Cerrar Desvío</button>
+                                        <button type="button" onclick="closeDesvioModal()"
+                                            class="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700">Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
+        <div id="kaizen-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+            <div class="modal-backdrop fixed inset-0" onclick="closeKaizenModal()"></div>
+            <div class="flex items-center justify-center min-h-screen px-4 py-8">
+                <div class="relative bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                    <div
+                        class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
+                        <h2 class="text-2xl font-bold text-gray-800">Detalle de Idea Kaizen</h2>
+                        <button onclick="closeKaizenModal()"
+                            class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="px-6 py-6 space-y-6">
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-4">
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">KAIZEN</span>
+                                <span id="kaizen-modal-estado-badge"
+                                    class="px-3 py-1 rounded-full text-sm font-semibold"></span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-600">OLA</p>
+                                    <p id="kaizen-modal-ola" class="text-lg font-bold text-gray-800"></p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-600">Fecha Creación</p>
+                                    <p id="kaizen-modal-fecha-creacion" class="text-gray-800"></p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p class="text-sm font-semibold text-gray-600">Descripción de la Idea</p>
+                                <p id="kaizen-modal-descripcion"
+                                    class="text-gray-800 text-lg bg-white p-3 rounded border">
+                                </p>
+                            </div>
+
+                            <!-- NUEVA SECCIÓN: Información de Costos y Beneficios -->
+                            <div id="kaizen-info-adicional" class="hidden space-y-4 border-t pt-4 mt-4">
+                                <h4 class="text-lg font-semibold text-purple-800">📊 Información de la Idea</h4>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-600">¿Necesita Compra?</p>
+                                        <p id="kaizen-modal-necesita-compra" class="text-gray-800 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-600">Beneficio Principal</p>
+                                        <p id="kaizen-modal-beneficio" class="text-gray-800"></p>
+                                    </div>
+                                </div>
+
+                                <div id="kaizen-materiales-info" class="hidden bg-purple-50 p-3 rounded-lg">
+                                    <p class="text-sm font-semibold text-purple-700 mb-2">📦 Materiales Necesarios</p>
+                                    <p id="kaizen-modal-materiales" class="text-gray-800 mb-2"></p>
+                                    <p class="text-sm font-semibold text-purple-700">💰 Costo Aproximado</p>
+                                    <p id="kaizen-modal-costo" class="text-gray-800 font-semibold"></p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-600">Fecha Resolución</p>
+                                    <p id="kaizen-modal-fecha-cierre" class="text-gray-800">-</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Foto si existe -->
+                        <div id="kaizen-foto-container" class="hidden">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+
+                        <div id="kaizen-modal-resolucion-info" class="hidden border-t border-gray-300 pt-4 mt-4">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">📋 Resolución</h4>
+                            <div class="mb-3">
+                                <p class="text-sm font-semibold text-gray-600">Estado de Resolución</p>
+                                <p id="kaizen-modal-resolucion-estado" class="text-gray-800 font-semibold"></p>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-sm font-semibold text-gray-600">Notas de Resolución</p>
+                                <p id="kaizen-modal-resolucion-notas" class="text-gray-800 bg-white p-3 rounded border">
+                                </p>
+                            </div>
+                            <div id="kaizen-modal-evidencia-container" class="hidden">
+                                <p class="text-sm font-semibold text-gray-600 mb-2">Evidencia</p>
+                                <div id="kaizen-modal-evidencia-content"></div>
+                            </div>
+                        </div>
+
+                        <div id="kaizen-resolution-form-container" class="hidden">
+                            <div class="border-t border-gray-200 pt-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Resolver Idea Kaizen</h3>
+                                <form id="kaizen-resolution-form" class="space-y-4">
+                                    <input type="hidden" id="kaizen-resolution-item-id" />
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Estado de
+                                            Resolución</label>
+                                        <select id="kaizen-resolution-status"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500">
+                                            <option value="APROBADO">✓ Aprobado - Implementado</option>
+                                            <option value="RECHAZADO">✗ Rechazado - No Viable</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Notas /
+                                            Comentarios</label>
+                                        <textarea id="kaizen-resolution-notes" rows="4" required
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                            placeholder="Describe la implementación, beneficios obtenidos, o razón del rechazo..."></textarea>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <button type="submit"
+                                            class="flex-1 font-semibold px-6 py-3 rounded-lg text-white"
+                                            style="background-color:#fe4a00;">Guardar Resolución</button>
+                                        <button type="button" onclick="closeKaizenModal()"
+                                            class="px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700">Cancelar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        ```html
+    </div> ```
     <div id="toast"
         class="hidden fixed bottom-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg transition-opacity z-50">
         <p id="toast-message"></p>
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const sesionGuardada = localStorage.getItem("app_5s_login");
 
+            if (sesionGuardada === "true") {
+                // Si ya entró, mostramos la app directo
+                mostrarApp();
+            }
+            // Si no, se queda viendo el login por defecto
+        });
+
+        // 2. Función para validar usuario y contraseña
+        function doLogin() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorMsg = document.getElementById("login-error");
+
+            // AQUÍ ESTÁN LAS CREDENCIALES: admin / admin
+            if (user === "admin" && pass === "admin") {
+                // Guardamos que ya entró en la memoria del navegador
+                localStorage.setItem("app_5s_login", "true");
+                errorMsg.classList.add("hidden");
+                mostrarApp();
+            } else {
+                // Error
+                errorMsg.classList.remove("hidden");
+                // Efecto de error visual
+                document.getElementById("password").value = "";
+                document.getElementById("username").focus();
+            }
+        }
+
+        // 3. Función para mostrar la app y ocultar el login con animación
+        function mostrarApp() {
+            const loginScreen = document.getElementById("login-screen");
+            const appContainer = document.getElementById("app-container");
+
+            // Desvanecer login
+            loginScreen.style.opacity = "0";
+            setTimeout(() => {
+                loginScreen.classList.add("hidden");
+
+                // Mostrar app
+                appContainer.classList.remove("hidden");
+                // Pequeño delay para que la transición de opacidad funcione
+                setTimeout(() => {
+                    appContainer.classList.remove("opacity-0");
+                }, 50);
+
+                // INICIAMOS FIREBASE AQUÍ
+                initFirebase();
+            }, 500);
+        }
+
+        // 4. Función para Cerrar Sesión (Opcional, puedes llamarla desde la consola o un botón)
+        function logout() {
+            if (confirm("¿Cerrar sesión?")) {
+                localStorage.removeItem("app_5s_login");
+                window.location.reload();
+            }
+        }
         let currentPhotoFile = null;
         let pendingFormData = null;
         let currentFotoDespuesFile = null;
@@ -4007,7 +4118,7 @@
             console.log('✅ Formulario mostrado correctamente');
         }
         // ---------- Inicialización ----------
-        window.addEventListener('load', initFirebase);
+        //window.addEventListener('load', initFirebase);
     </script>
 </body>
 
